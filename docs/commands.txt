@@ -1,0 +1,13 @@
+- Start a docker container:
+    docker-compose up
+
+- Update Poetry packages:
+    poetry lock --no-update
+    poetry install
+
+- Reformat Project:
+    pre-commit run --all-files
+
+- Alembic Commands:
+    alembic upgrade head
+    alembic revision -m "name_of_migration_such_as_add_column_to_table"

@@ -1,0 +1,39 @@
+https://mansourar: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@GitHub.com/mansourar/rekt-backend-api.git
+
+
+1- Create A Local Dev Env
+    a- Docker Image:
+        - DynamoDB                                  [DONE]
+        - DynamoDB Admin                            [DONE]
+        - PgSQL (postgres:14.1-alpine)              [DONE]
+        - AWS S3 Bucket                             [DONE]
+        - AWS S3 Bucket Admin                       [DONE]
+        - REDIS (redis)                             [DONE]
+        - REDIS Admin (redisinsight)                [DONE]
+
+    b- GitHub Local
+        - Push docker container to GitHub           [DONE]
+        - Init FastAPI Project                      [DONE]
+        - Create Dependency File                    [DONE]
+
+2- GitHub Set up
+    a- Distopia Email Accounts (to be provided)     [WAITING ELIE]
+    b- GitHub Enterprise Account (to be provided)   [WAITING ELIE]
+    c- GitHub Project                               [MOVE FROM PERSONAL TO ENTERPRISE ACCOUNT]
+    d- GitHub Branches (Creation Policies)          [WAITING ELIE]
+    e- GitHub PR Policies                           [WAITING ELIE]
+
+3- Project Set up
+    a- FastAPI PgSQL Connector                      [DONE]
+    b- FastAPI DynamoDB Connector
+    c- FastAPI S3 Connector                         [DONE]
+    d- FastAPI REDIS Connector
+    e- Alembic Migrations                           [DONE]
+    f- Implement Logger Class                       [DONE]
+
+4- AWS Env Setup                                    [WAITING ELIE]
+5- GitHub Actions                                   [WAITING ELIE]
+6- GitHub Deploy Policies                           [WAITING ELIE]
+7- Automated Tests Framework                        [DONE]
+8- Deploy Test With Test Endpoints                  [WAITING ELIE]
+9- Development [START]                              [PENDING]
