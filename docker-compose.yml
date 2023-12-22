@@ -36,17 +36,6 @@ services:
       MINIO_ROOT_PASSWORD: localawskeys2
     command: server --console-address ":9001" /data
 
-  create-test-bucket:
-    image: minio/mc
-    depends_on:
-      - minio
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 localawskeys1 localawskeys2;
-      /usr/bin/mc mb myminio/local-rekt-test-bucket;
-      /usr/bin/mc policy set public myminio/local-rekt-test-bucket;
-      exit 0;
-      "
 
   db:
     image: postgres:14.1-alpine

@@ -6,14 +6,14 @@ from app.internal.helpers.components.environment import Environment
 
 GLOBAL_ENV = Environment()
 
-BUCKETS = [
-    "test-bucket"
+MASTER_BUCKET = GLOBAL_ENV.ENV
+
+FOLDERS = [
+    "assets/",
+    "others/",
+    "others1/",
+    "others2/"
 ]
-
-
-def get_bucket_name(bucket):
-    bucket_name = f"{GLOBAL_ENV.ENV}-rekt-{bucket}"
-    return bucket_name
 
 
 class S3Client:
@@ -35,24 +35,77 @@ class S3Client:
         else:
             self.client = boto3.client("s3", "eu-west-1")
 
-    def verify_buckets(self):
+    def environment_bucket_check(self):
+
+        response, error = self.create_bucket(MASTER_BUCKET)
+        if error:
+            return False, error
+
+        response, error = self.create_folders(MASTER_BUCKET)
+        if error:
+            return False, error
+
+        return True, None
+
+    def bucket_exists(self, bucket):
         try:
-            for bucket in BUCKETS:
-                self.client.head_bucket(Bucket=get_bucket_name(bucket))
+            self.client.head_bucket(Bucket=bucket)
+            return True, None
+        except Exception as exc:
+            return False, str(exc)
+
+    def folder_exits(self, bucket, folder):
+        try:
+            self.client.head_object(Bucket=bucket, Key=folder)
+            return True, None
+        except Exception as exc:
+            return False, str(exc)
+
+    def create_bucket(self, bucket_name: str):
+        try:
+            response, error = self.bucket_exists(bucket_name)
+            if not response:
+                self.client.create_bucket(Bucket=bucket_name)
         except Exception as exc:
             return False, str(exc)
         return True, None
 
+    def create_folders(self, bucket_name: str):
+        try:
+            for folder in FOLDERS:
+                response, error = self.folder_exits(bucket_name, folder)
+                if error:
+                    print(folder)
+                    self.client.put_object(Bucket=MASTER_BUCKET, Key=folder)
+        except Exception as exc:
+            return False, f"failed to put object contents in bucket {MASTER_BUCKET} : {str(exc)}"
+
+        return True, None
+
+    def list_bucket(self, dir_filter: str):
+        response = self.client.list_objects_v2(Bucket=MASTER_BUCKET)
+        dir_list = []
+        for obj in response.get('Contents', []):
+            if str(obj["Key"]).startswith(f"{dir_filter}"):
+                dir_list.append({
+                    "key": obj['Key'],
+                    "lastModified": obj['LastModified'].strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    "bytesSize": obj['Size'],
+                })
+        return {
+            "dir": dir_list
+        }
+
     def delete_object(self, bucket: str, key: str) -> (bool, str):
         try:
-            self.client.delete_object(Bucket=get_bucket_name(bucket), Key=key)
+            self.client.delete_object(Bucket=bucket, Key=key)
         except Exception as exc:
             return False, f"{exc}"
         return True, ""
 
     def delete_all_objects(self, bucket: str, prefix: str) -> (bool, str):
         try:
-            objects = self.client.list_objects(Bucket=get_bucket_name(bucket), Prefix=f"{prefix}/")
+            objects = self.client.list_objects(Bucket=bucket, Prefix=f"{prefix}/")
         except Exception as exc:
             return (
                 False,
@@ -77,18 +130,18 @@ class S3Client:
 
     def get_object(self, bucket: str, key: str) -> (bool, str):
         try:
-            result = self.client.get_object(Bucket=get_bucket_name(bucket), Key=key)
+            result = self.client.get_object(Bucket=bucket, Key=key)
             if len(result) == 0:
-                return False, f"object in bucket {get_bucket_name(bucket)} with {key} is empty"
+                return False, f"object in bucket {bucket} with {key} is empty"
         except Exception as exc:
-            return False, f"failed to get object in bucket {get_bucket_name(bucket)} with {key}: {exc}"
+            return False, f"failed to get object in bucket {bucket} with {key}: {exc}"
         return True, result
 
     def put_object(self, bucket: str, key: str, body) -> (bool, str):
         try:
             self.client.put_object(
-                Bucket=get_bucket_name(bucket), Body=body, Key=key, ContentType=self.content_type
+                Bucket=bucket, Body=body, Key=key, ContentType=self.content_type
             )
-            return True, f"{get_bucket_name(bucket)}/{key}"
+            return True, None
         except Exception as exc:
-            return False, f"failed to put object contents in bucket {get_bucket_name(bucket)} with {key}: {exc}"
+            return False, f"failed to put object contents in bucket {bucket} with {key}: {exc}"

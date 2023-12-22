@@ -1,24 +1,27 @@
+from typing import Optional
+
 import fastapi
 from fastapi.security import HTTPBasic
 from starlette import status
 
-from app.internal.database.postgres.pgsql_helper import PgsqlReader
-from app.internal.modules.assets_manager import pgsql_db
+from app.internal.modules.assets_manager.redis_db import read_dir_cache, create_dir_cache
+from app.internal.modules.assets_manager.storage_s3 import assets_list
 
 router = fastapi.APIRouter()
 security = HTTPBasic()
 
+asset_dir_key = "assets_list"
+
 
 @router.get("/list_assets", status_code=status.HTTP_200_OK)
 async def list_assets(
-        cl: int
+        dir_filter: Optional[str] = "assets"
 ):
-    with PgsqlReader.SESSION_MAKER() as psql_session:
-        result = await pgsql_db.list_assets(
-            psql_session=psql_session,
-            changelist=cl
-        )
-        return result
+    response, error = await read_dir_cache(asset_dir_key)
+    if error:
+        response = await assets_list(dir_filter=dir_filter)
+        await create_dir_cache(asset_dir_key, response)
+    return response
 
 
 @router.post("/upload")

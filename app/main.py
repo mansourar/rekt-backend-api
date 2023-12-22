@@ -45,12 +45,10 @@ def environment_setup():
 
     logging.info("Validating S3 Buckets")
     s3_client = S3Client()
-    result, error = s3_client.verify_buckets()
+    result, error = s3_client.environment_bucket_check()
     if error:
         logging.critical(f"S3 Bucket Verification Error {error}")
         exit()
-
-    # TODO: Validate REDIS
 
     # TODO: Validate DYNAMODB
 
